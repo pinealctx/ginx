@@ -2,6 +2,7 @@ package ginx
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/pinealctx/neptune/tex"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -24,8 +25,10 @@ const (
 	// RCodeInternal 服务端内部错误，需提示用户稍后重试等。
 	RCodeInternal ResCode = 5000
 
-	//DefaultLang 默认语言
+	// DefaultLang 默认语言
 	DefaultLang = "zh"
+	// LangKey 语言字段在cookie/url/header的名称
+	LangKey = "lang"
 )
 
 var (
@@ -124,4 +127,30 @@ func IsError(err, target error) bool {
 		return false
 	}
 	return errStatus.Code() == targetStatus.Code() && errStatus.Message() == targetStatus.Message()
+}
+
+// GetLangFromContext 从gin的context里获取语言类型
+func GetLangFromContext(c *gin.Context) string {
+	var lang = c.Query(LangKey)
+	if IsValidLang(lang) {
+		return lang
+	}
+	lang = c.GetHeader(LangKey)
+	if IsValidLang(lang) {
+		return lang
+	}
+	lang, _ = c.Cookie(LangKey)
+	if IsValidLang(lang) {
+		return lang
+	}
+	lang = c.PostForm(LangKey)
+	if IsValidLang(lang) {
+		return lang
+	}
+	return DefaultLang
+}
+
+// IsValidLang 判断是否为合法的语言类型
+func IsValidLang(lang string) bool {
+	return lang == "zh" || lang == "en"
 }
