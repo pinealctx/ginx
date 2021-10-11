@@ -3,7 +3,7 @@ package ginx
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/pinealctx/neptune/tex"
+	"github.com/pinealctx/neptune/jsonx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -40,7 +40,7 @@ func SetupErrI18nFile(filepath string) error {
 	if errMsgHash != nil {
 		return nil
 	}
-	return tex.LoadJSONFile2Obj(filepath, &errMsgHash)
+	return jsonx.LoadJSONFile2Obj(filepath, &errMsgHash)
 }
 
 // ParseResCode 根据错误解析出ResCode和描述。
