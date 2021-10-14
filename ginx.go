@@ -120,8 +120,10 @@ func (s *GinX) ClearCookie(c *gin.Context) {
 func recovery(c *gin.Context) {
 	defer func() {
 		var capture = recover()
-		c.AbortWithStatus(http.StatusInternalServerError)
-		ulog.Error("http.panic", ctxFields(c, zap.Reflect("capture", capture), zap.Stack("stack"))...)
+		if capture != nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
+			ulog.Error("http.panic", ctxFields(c, zap.Reflect("capture", capture), zap.Stack("stack"))...)
+		}
 	}()
 	c.Next()
 }
