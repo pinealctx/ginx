@@ -3,7 +3,6 @@ package ginx
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/go-errors/errors"
 	"github.com/pinealctx/neptune/ulog"
 	"go.uber.org/zap"
 	"net/http"
@@ -38,7 +37,7 @@ func New(addr string, optFns ...OptionFn) *GinX {
 	s.srv = &http.Server{Addr: addr}
 	s.Engine = gin.New()
 	if opt.recoverable {
-		s.Engine.Use(recovery(opt.recoverSkip))
+		s.Engine.Use(recovery)
 	}
 	if opt.logRequest {
 		s.Engine.Use(logRequest)
@@ -118,18 +117,13 @@ func (s *GinX) ClearCookie(c *gin.Context) {
 	c.Writer.Header().Set("Set-Cookie", ck.String())
 }
 
-func recovery(skip int) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		defer func() {
-			var capture = recover()
-			var err = errors.Wrap(capture, skip)
-			if err != nil {
-				c.AbortWithStatus(http.StatusInternalServerError)
-				ulog.Error("http.panic", ctxFields(c, zap.Error(err))...)
-			}
-		}()
-		c.Next()
-	}
+func recovery(c *gin.Context) {
+	defer func() {
+		var capture = recover()
+		c.AbortWithStatus(http.StatusInternalServerError)
+		ulog.Error("http.panic", ctxFields(c, zap.Reflect("capture", capture), zap.Stack("stack"))...)
+	}()
+	c.Next()
 }
 
 func logRequest(c *gin.Context) {

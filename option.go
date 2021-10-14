@@ -7,7 +7,6 @@ var (
 		cookieAge:   604800,
 		cookieKey:   CookieKey,
 		recoverable: true,
-		recoverSkip: 0,
 		logRequest:  false,
 	}
 )
@@ -16,7 +15,6 @@ type option struct {
 	cookieAge   int
 	cookieKey   string
 	recoverable bool
-	recoverSkip int
 	logRequest  bool
 	middlewares []gin.HandlerFunc
 }
@@ -29,10 +27,9 @@ func WithCookieAge(age int) OptionFn {
 	}
 }
 
-func WithRecovery(enable bool, recoverSkip int) OptionFn {
+func WithRecovery(enable bool) OptionFn {
 	return func(o *option) {
 		o.recoverable = enable
-		o.recoverSkip = recoverSkip
 	}
 }
 
