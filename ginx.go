@@ -38,7 +38,7 @@ func New(addr string, optFns ...OptionFn) *GinX {
 	s.srv = &http.Server{Addr: addr}
 	s.Engine = gin.New()
 	if opt.recoverable {
-		s.Engine.Use(recovery)
+		s.Engine.Use(recovery(opt.recoverSkip))
 	}
 	if opt.logRequest {
 		s.Engine.Use(logRequest)
@@ -118,16 +118,18 @@ func (s *GinX) ClearCookie(c *gin.Context) {
 	c.Writer.Header().Set("Set-Cookie", ck.String())
 }
 
-func recovery(c *gin.Context) {
-	defer func() {
-		var capture = recover()
-		var err = errors.Wrap(capture, 3)
-		if err != nil {
-			c.AbortWithStatus(http.StatusInternalServerError)
-			ulog.Error("http.panic", ctxFields(c, zap.Error(err))...)
-		}
-	}()
-	c.Next()
+func recovery(skip int) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			var capture = recover()
+			var err = errors.Wrap(capture, skip)
+			if err != nil {
+				c.AbortWithStatus(http.StatusInternalServerError)
+				ulog.Error("http.panic", ctxFields(c, zap.Error(err))...)
+			}
+		}()
+		c.Next()
+	}
 }
 
 func logRequest(c *gin.Context) {
