@@ -74,7 +74,7 @@ func (s *GinX) GinGroup(relativePath string, handlers ...gin.HandlerFunc) *GinGr
 	}
 }
 
-func (s *GinX) SetCookie(c *gin.Context, val string) error {
+func (s *GinX) SetCookie(c *gin.Context, val string) {
 	var ck = &http.Cookie{
 		Name:     s.cookieKey,
 		Value:    val,
@@ -83,7 +83,6 @@ func (s *GinX) SetCookie(c *gin.Context, val string) error {
 		HttpOnly: true,
 	}
 	c.Writer.Header().Set("Set-Cookie", ck.String())
-	return nil
 }
 
 func (s *GinX) GetCookie(c *gin.Context) (string, error) {
